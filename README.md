@@ -31,7 +31,9 @@
 >   called `alert()`.
 
 
-<img src="/images/screenshot.png" align="right"/>This is the official Yr Nowcast module for [MagicMirror²](https://github.com/MichMich/MagicMirror), which displays data from [Yr](https://www.yr.no/nb/).
+<img src="/images/screenshot.png" align="right"/>A nowcast module for [MagicMirror²](https://github.com/MagicMirrorOrg/MagicMirror), showing precipitation for the next 90 minutes. This is a personal fork and is not maintained or endorsed by Yr or MET Norway.
+
+The data comes from [MET Norway's open API](https://api.met.no/), the Norwegian Meteorological Institute — the same institute behind [Yr](https://www.yr.no/), which it runs together with NRK. So the forecast is the same one Yr shows, taken from the documented public API rather than Yr's internal one.
 Nowcast data is only available for some Norwegian locations covered by the Norwegian weather radars. See [Explanation (in Norwegian)](https://yrkundesenter.zendesk.com/hc/no/articles/209295525-N%C3%A5varsel-Pr%C3%B8v-v%C3%A5rt-nye-nedb%C3%B8rvarsel-)!
  Sometimes the Nowcast will tell you "no precipitation next 90 minutes", while the weather symbol contains rain or snow. This is expected, since the weather symbol is based on a weather model and Nowcast is based on radar observations.
 

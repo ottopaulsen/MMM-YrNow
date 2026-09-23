@@ -1,7 +1,7 @@
 {
   "name": "mmm-yrnow",
-  "version": "1.1.0",
-  "description": "MagicMirror module showing precipitation for the next 90 minutes from yr.no",
+  "version": "2.0.0",
+  "description": "MagicMirror module showing precipitation for the next 90 minutes, from MET Norway's open API",
   "main": "MMM-YrNow.js",
   "repository": {
     "type": "git",
