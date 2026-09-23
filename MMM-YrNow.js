@@ -1,7 +1,10 @@
 Module.register('MMM-YrNow', {
 	defaults: {
-        yrApiUrl: "https://www.yr.no/api/v0/locations/%s/forecast",
-        updateInterval: 10000
+        lat: null,               // Decimal degrees, e.g. 63.4305
+        lon: null,               // Decimal degrees, e.g. 10.3951
+        contact: null,           // Your e-mail or site, added to the User-Agent MET sees
+        showWeatherForecast: true,
+        updateInterval: 5 * 60 * 1000
 	},
 
     getTranslations: function() {
@@ -21,10 +24,9 @@ Module.register('MMM-YrNow', {
 	},
 
 	start: function() {
-		this.list = null;
+		this.precipitation = [];
 		this.loaded = false;
-        var forecastUrl = printf(printf('%s', this.config.yrApiUrl),this.config.locationId);
-        this.getForecast(forecastUrl);
+        this.getForecast();
         var self = this;
 
         setInterval(function() {
@@ -34,30 +36,33 @@ Module.register('MMM-YrNow', {
 
     socketNotificationReceived: function(notification, payload) {
 		if(notification === 'YR_FORECAST_DATA') {
-			if(payload.nowcast.points != null) {
-                this.processNowcast(payload.nowcast);
-                if(this.config.showWeatherForecast)
-                    this.processForecast(payload.forecast);
+            if(payload.precipitation != null) {
+                this.precipitation = payload.precipitation;
+                this.loaded = true;
             }
+            if(payload.symbolCode != null) this.weatherSymbol = payload.symbolCode;
+            if(Number.isFinite(payload.temperature)) this.temperature = payload.temperature;
             this.updateDom(1000);
 		}
 	},
 
-    getForecast: function(url) {
+    getForecast: function() {
         this.sendSocketNotification('GET_YR_FORECAST', {
-            forecastUrl: url,
             config: this.config
         });
     },
 
     getNextPrecipStart: function() {
-        return this.list.points.filter((item) => 
-            item.precipitation.intensity > 0 && Date.parse(item.time) >= new Date().valueOf())[0];
+        return this.precipitation.find((item) =>
+            item.intensity > 0 && Date.parse(item.time) >= new Date().valueOf());
     },
 
-    getNextPrecipStop: function() {
-        return this.list.points.filter((item) => 
-            item.precipitation.intensity === 0 && Date.parse(item.time) >= new Date().valueOf())[0];
+    // The first dry point *after* precipitation starts, so a dry slot earlier in
+    // the series cannot be reported as the moment the rain stops.
+    getNextPrecipStop: function(start) {
+        const from = start ? Date.parse(start.time) : new Date().valueOf();
+        return this.precipitation.find((item) =>
+            item.intensity === 0 && Date.parse(item.time) > from);
     },
 
     getMinutesTill: function(nextItemTime) {
@@ -76,7 +81,7 @@ Module.register('MMM-YrNow', {
 	    }
         var nowCast = this.translate('no_precip_next_90');
         var precipitationStart = this.getNextPrecipStart();
-        var precipitationStop = this.getNextPrecipStop();
+        var precipitationStop = this.getNextPrecipStop(precipitationStart);
         var forecast = document.createElement('div');
         forecast.className = 'forecast';
 
@@ -103,7 +108,7 @@ Module.register('MMM-YrNow', {
             }
         }
 
-        if(nowCast == this.translate('no_precip_next_90') && this.config.showWeatherForecast) {
+        if(nowCast == this.translate('no_precip_next_90') && this.config.showWeatherForecast && this.weatherSymbol) {
             forecast.appendChild(this.getWeatherSymbol());
         }
         wrapper.appendChild(forecast);
@@ -142,7 +147,10 @@ Module.register('MMM-YrNow', {
     getWeatherSymbol: function() {
         var symbol = document.createElement('img');
         symbol.className = 'weatherSymbol';
-        symbol.src = this.file(printf('images/%s.svg', this.weatherSymbol));
+        symbol.src = this.file(printf('images/symbols/%s.svg', this.weatherSymbol));
+        // If MET ever returns a symbol_code we have no icon for, drop the image
+        // rather than showing a broken one.
+        symbol.onerror = function() { symbol.remove(); };
         return symbol;
     },
 
@@ -153,35 +161,6 @@ Module.register('MMM-YrNow', {
         return temp;
     },
 
-	processNowcast: function(obj) {
-        if(obj.points) {
-            this.list = obj;
-            this.loaded = true;	
-        }
-	},
 
-    calculateWeatherSymbolId: function(data) {
-        if (!data) return '';
-        let id = data.n < 10 ? printf('0%s', data.n) : data.n;
-        switch (data.var) {
-            case 'Sun':
-            id += 'd';
-            break;
-            case 'PolarNight':
-            id += 'm';
-            break;
-            case 'Moon':
-            id += 'n';
-            break;
-        }
-        return id;
-    },
 
-    processForecast: function(obj) {
-        if(obj.shortIntervals) {
-            this.weatherSymbol = this.calculateWeatherSymbolId(obj.shortIntervals[0].symbol);
-            this.temperature = obj.shortIntervals[0].temperature.value;
-            this.loaded = true;
-        }
-    }
 });

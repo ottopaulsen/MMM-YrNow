@@ -7,6 +7,15 @@
 >
 > Changes in this fork:
 >
+> - **Uses MET Norway's open API** (`nowcast/2.0` and `locationforecast/2.0`)
+>   instead of yr.no's undocumented internal `v0` endpoint. The open API is
+>   documented, openly licensed and stable; the old one offered no guarantees.
+>   This changes the configuration: `lat`/`lon` replace `locationId`.
+> - Weather symbols now come from MET's own
+>   [weathericons](https://github.com/metno/weathericons) set (MIT licensed) in
+>   `images/symbols/`, named by `symbol_code`. The artwork is the same as before
+>   — the icons this module shipped were these icons renamed to legacy ids — but
+>   now they are properly licensed and need no mapping table.
 > - Uses the built-in `fetch` instead of the deprecated `request` package, so the
 >   module has no external dependencies at all.
 > - The poll loop reschedules even when a request fails or times out. Previously
@@ -46,27 +55,29 @@ Add the module to the modules array in the config/config.js file by adding the f
 		module: 'MMM-YrNow',
 		position: 'top_right',
 		config: {
-			locationId: '1-73738',
-            showWeatherForecast: true
+			lat: 63.4305,
+			lon: 10.3951,
+			contact: 'you@example.com',
+			showWeatherForecast: true
 		}
 	},
 
 ## Configuration options
 
-<table style="width:100%">
-	<tr>
-		<th>Option</th>
-		<th>Comment</th>
-		<th>Default</th>
-	</tr>
-	<tr>
-		<td>locationId</td>
-		<td>The unique Id found in the Url of any location on <a href="https://www.yr.no/nb/liste/dag/1-73738/Norge/Oslo/Oslo/Blindern">Yr</a> I.e. Blindern (Oslo)</td>
-		<td>1-73738</td>
-	</tr>
-    <tr>
-        <td>showWeatherForecast</td>
-        <td>If there's no precipitation in the nowcast, the weather forecast for the next period is shown.</td>
-        <td>true</td>
-    </tr>
-</table>
+| Option                | Default | Comment                                                                                                                                                                       |
+| --------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lat`                 | –       | Latitude in decimal degrees. Required. Nowcast only covers the Nordics.                                                                                                        |
+| `lon`                 | –       | Longitude in decimal degrees. Required.                                                                                                                                        |
+| `contact`             | –       | Your e-mail address or site. MET requires a `User-Agent` that identifies the software *and* lets them reach the operator, and blocks generic ones. Strongly recommended.        |
+| `showWeatherForecast` | `true`  | If there is no precipitation in the nowcast, show the weather symbol for the next period.                                                                                      |
+| `updateInterval`      | 5 min   | Starting poll interval. Replaced by the `cache-control` value MET returns, clamped to between 1 and 60 minutes.                                                                |
+
+Find your coordinates from the URL of your location on [Yr](https://www.yr.no/),
+or from any map.
+
+## Attribution
+
+Weather data from [MET Norway](https://api.met.no/), used under
+[NLOD](https://data.norge.no/nlod/en/2.0) / CC BY 4.0. Weather symbols from
+[metno/weathericons](https://github.com/metno/weathericons), MIT licensed — see
+`images/symbols/LICENSE`.
