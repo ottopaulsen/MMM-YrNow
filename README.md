@@ -1,5 +1,27 @@
 # MagicMirror² Module: YrNow
 
+> **This is a fork** of [YR/MMM-YrNow](https://github.com/YR/MMM-YrNow),
+> maintained at [ottopaulsen/MMM-YrNow](https://github.com/ottopaulsen/MMM-YrNow).
+> The upstream repository has had no commits since January 2023 and carries no
+> licence file, so this fork exists for personal use rather than redistribution.
+>
+> Changes in this fork:
+>
+> - Uses the built-in `fetch` instead of the deprecated `request` package, so the
+>   module has no external dependencies at all.
+> - The poll loop reschedules even when a request fails or times out. Previously
+>   the next poll was scheduled inside the response callback, so a request that
+>   never came back stopped all updates until MagicMirror was restarted.
+> - Requests time out after 15 seconds, and the update interval taken from the
+>   `cache-control` header is clamped to sane bounds.
+> - A missing `cache-control` header no longer throws.
+> - A browser refresh no longer starts a second, parallel poll loop.
+> - Fixed `NaN°` being shown as the temperature when `showWeatherForecast` is
+>   `false`.
+> - Removed `readTextFile.js`, dead code that did a synchronous XHR and then
+>   called `alert()`.
+
+
 <img src="/images/screenshot.png" align="right"/>This is the official Yr Nowcast module for [MagicMirror²](https://github.com/MichMich/MagicMirror), which displays data from [Yr](https://www.yr.no/nb/).
 Nowcast data is only available for some Norwegian locations covered by the Norwegian weather radars. See [Explanation (in Norwegian)](https://yrkundesenter.zendesk.com/hc/no/articles/209295525-N%C3%A5varsel-Pr%C3%B8v-v%C3%A5rt-nye-nedb%C3%B8rvarsel-)!
  Sometimes the Nowcast will tell you "no precipitation next 90 minutes", while the weather symbol contains rain or snow. This is expected, since the weather symbol is based on a weather model and Nowcast is based on radar observations.
@@ -14,11 +36,9 @@ Remote into your Magic Mirror box using a terminal software and go to the module
 
 Clone the repository:
 
-	git clone https://github.com/YR/MMM-YrNow
+	git clone https://github.com/ottopaulsen/MMM-YrNow
 
-Prerequisites (make sure to also have request installed):
-
-	npm install request
+There are no dependencies to install.
 
 Add the module to the modules array in the config/config.js file by adding the following section. You can change this configuration later when you see this works:
 

@@ -12,8 +12,7 @@ Module.register('MMM-YrNow', {
 
     getScripts: function() {
         return [
-            'printf.js',
-            'readTextFile.js'
+            'printf.js'
         ];
     },
 
@@ -91,7 +90,7 @@ Module.register('MMM-YrNow', {
                 this.createAnimation(animationWrapper);
                 forecast.appendChild(this.getUmbrella());            
                 if(precipitationStop) {
-                    precipitationStopsIn = this.getMinutesTill(precipitationStop.time);
+                    const precipitationStopsIn = this.getMinutesTill(precipitationStop.time);
                     nowCast = printf(this.translate("precipitation_ends"), precipitationStopsIn.toFixed(0));
                 }
                 else
@@ -108,7 +107,9 @@ Module.register('MMM-YrNow', {
             forecast.appendChild(this.getWeatherSymbol());
         }
         wrapper.appendChild(forecast);
-        wrapper.appendChild(this.getTemperature());
+        if (Number.isFinite(this.temperature)) {
+            wrapper.appendChild(this.getTemperature());
+        }
         wrapper.appendChild(this.createNowcastText(nowCast));
     	return wrapper;
 	},
